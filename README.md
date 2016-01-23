@@ -231,6 +231,56 @@ This can be achieved via an automated deployment process with tools like
 Vagrant, chef, or Puppet, or can be set manually with cloud hosts like
 Pagodabox and Heroku.
 
+
+Comparing files
+------------
+
+As noted above, you should never commit a .env file with real production values
+to your repository but instead commit a `.env.example` or `.env.dist` filled
+with dummy values that you would then manually copy over to `.env` and update.
+
+However, during the development process it's not uncommon for the `.env.dist` file
+to grow over time. If you're not loading the .env file into the server config,
+you would normally need to use the diff and patch utils to update the .env
+file (or do it by hand - risky!).
+
+Alternatively, you can invoke the `compare()` method to yield a report of the
+changes to make.
+
+```
+<?php // envcompare.php
+
+$envFile = '.env';
+$repoFile = '.env.dist';
+
+$dotEnv = new \Dotenv\Dotenv(__DIR__, $envFile);
+
+// New method - compare()
+print $dotEnv->compare(__DIR__, $repoFile);
+```
+
+This yields output similar to below
+
+```
+/*  Sample output
+
+# Add to the file /path/to/.env
+APP_FOO=foo
+APP_BAR=bar
+
+# Also, these entries are surplus. Remove them?
+# - APP_QUX=qux
+*/
+
+```
+
+The output is safe to cat into the `.env` file that is in use in the environment
+
+    php envcompare.php >> .env
+
+Leaving you free to edit the `.env` file and replace the dummy values from the
+repo with the real values for the current environment.
+
 ### Command Line Scripts
 
 If you need to use environment variables that you have set in your `.env` file
@@ -240,6 +290,10 @@ it into your local shell session:
 ```
 source .env
 ```
+
+
+
+
 
 Contributing
 ------------
@@ -251,4 +305,3 @@ Contributing
 5. Commit your changes (`git commit -am 'Added some feature'`)
 6. Push to the branch (`git push origin my-new-feature`)
 7. Create new Pull Request
-
