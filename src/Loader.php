@@ -29,6 +29,11 @@ class Loader
     protected $immutable;
 
     /**
+     * @var array
+     */
+    protected $bucket = [];
+
+    /**
      * Create a new loader instance.
      *
      * @param string $filePath
@@ -49,6 +54,15 @@ class Loader
      */
     public function load()
     {
+
+        if ($lines = $this->populateBucket()) {
+            foreach ($lines as $line) {
+                $this->setEnvironmentVariable($line);
+            }
+        }
+
+
+/*
         $this->ensureFileIsReadable();
 
         $filePath = $this->filePath;
@@ -58,9 +72,11 @@ class Loader
                 $this->setEnvironmentVariable($line);
             }
         }
-
+*/
         return $lines;
     }
+
+
 
     /**
      * Ensures the given filePath is readable.
@@ -341,6 +357,8 @@ class Loader
         $_SERVER[$name] = $value;
     }
 
+
+
     /**
      * Clear an environment variable.
      *
@@ -367,5 +385,53 @@ class Loader
         putenv($name);
 
         unset($_ENV[$name], $_SERVER[$name]);
+    }
+
+
+
+    public function populateBucket()
+    {
+
+          $this->ensureFileIsReadable();
+
+          $filePath = $this->filePath;
+          $lines = $this->readLinesFromFile($filePath);
+
+          $collectedLines = [];
+
+          foreach ($lines as $line) {
+              if (!$this->isComment($line) && $this->looksLikeSetter($line)) {
+                  $collectedLines[] = $this->collectEnvironmentVariable($line);
+              }
+          }
+
+          return $collectedLines;
+    }
+
+    public function getBucket()
+    {
+      return $this->bucket;
+    }
+
+    /**
+     * Parses an env file line and populates a bucket entry for it
+     *
+     *
+     * The environment variable value is stripped of single and double quotes.
+     *
+     * @param string      $name
+     * @param string|null $value
+     *
+     * @return void
+     */
+    public function collectEnvironmentVariable($name, $value = null)
+    {
+        list($name, $value) = $this->normaliseEnvironmentVariable($name, $value);
+
+        // Don't overwrite existing environment variables if we're immutable
+        // Ruby's dotenv does this with `ENV[key] ||= value`.
+
+        $this->bucket[$name] = $value;
+        return "$name=$value";
     }
 }

@@ -92,4 +92,23 @@ class Dotenv
     {
         return new Validator((array) $variable, $this->loader);
     }
+
+    public function compare($path = null, $file = '.env.dist')
+    {
+      if (is_null($path)) {
+        $path = dirname($this->filePath);
+      }
+
+      $distFilePath = $this->getFilePath($path, $file);
+      $comparisonLoader = new Loader($this->filePath, true);
+
+      $this->loader->populateBucket();
+      $comparisonLoader->populateBucket();
+
+      $thisBucket = $this->loader->getBucket();
+      $thatBucket = $comparisonLoader->getBucket();
+
+      return array_diff($thisBucket, $thisBucket);
+
+    }
 }
