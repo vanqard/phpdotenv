@@ -389,7 +389,8 @@ class Loader
 
           foreach ($lines as $line) {
               if (!$this->isComment($line) && $this->looksLikeSetter($line)) {
-                  $collectedLines[] = $this->collectEnvironmentVariable($line);
+                  $this->collectEnvironmentVariable($line);
+                  $collectedLines[] = $line;
               }
           }
 

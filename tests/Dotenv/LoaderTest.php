@@ -13,7 +13,7 @@ class LoaderTest extends PHPUnit_Framework_TestCase
      * @var \Dotenv\Loader
      */
     private $mutableLoader;
-    
+
     public function setUp()
     {
         $folder = dirname(__DIR__) . '/fixtures/env';
@@ -98,5 +98,23 @@ class LoaderTest extends PHPUnit_Framework_TestCase
         $this->assertSame($this->value(), getenv($this->key()));
         $this->assertSame(true, isset($_ENV[$this->key()]));
         $this->assertSame(true, isset($_SERVER[$this->key()]));
+    }
+
+    public function prepLoaderForBucketTests()
+    {
+        $envFile = dirname(__DIR__) . '/fixtures/env/compare.base.env';
+
+        return new Loader($envFile);
+    }
+
+
+    public function testGetBucketYieldsArray()
+    {
+        $loader = $this->prepLoaderForBucketTests();
+        $loader->populateBucket();
+
+        $settings = $loader->getBucket();
+
+        $this->assertEquals(2, count($settings), 'Bucket contains ' . count($settings) . ' entries instead of expected 2.');
     }
 }

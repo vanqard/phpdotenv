@@ -326,4 +326,29 @@ class DotenvTest extends PHPUnit_Framework_TestCase
         $dotenv = new Dotenv($this->fixturesFolder);
         $dotenv->required('REQUIRED_VAR')->notEmpty();
     }
+
+    public function testCompareFindsNewEntries()
+    {
+      $dotenv = new Dotenv($this->fixturesFolder, 'compare.base.env');
+      $result = $dotenv->compare($this->fixturesFolder, 'compare.newentries.env');
+
+
+      $this->assertTrue((bool)strstr($result, 'APP_QUX'), 'Failed to find APP_QUX in new file');
+    }
+
+    public function testCompareFindsSurplusEntries()
+    {
+      $dotenv = new Dotenv($this->fixturesFolder, 'compare.newentries.env');
+      $result = $dotenv->compare($this->fixturesFolder, 'compare.base.env');
+
+      $this->assertTrue((bool)strstr($result, '- APP_QUX'), 'Failed to find surplus APP_QUX in new file');
+    }
+
+    public function testCompareReportsNoChanges()
+    {
+      $dotenv = new Dotenv($this->fixturesFolder, 'compare.base.env');
+      $result = $dotenv->compare($this->fixturesFolder, 'compare.base.env');
+
+      $this->assertStringStartsWith('# No changes', $result, 'Unexpected result when both files same: ' . $result);
+    }
 }
